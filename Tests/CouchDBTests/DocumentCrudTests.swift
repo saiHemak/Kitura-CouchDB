@@ -1,25 +1,25 @@
 /**
-* Copyright IBM Corporation 2016, 2017
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-**/
+ * Copyright IBM Corporation 2016, 2017
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
 
 import XCTest
 
 #if os(Linux)
-    import Glibc
+import Glibc
 #else
-    import Darwin
+import Darwin
 #endif
 
 import Foundation
@@ -61,8 +61,9 @@ class DocumentCrudTests: CouchDBTest {
     // Test CRUD actions in sequence. Each action calls a following action
     // in sequence, starting with document creation.
     func testCrudTest() {
-        createDatabase()
-        self.createDocument(fromJSONString: self.jsonString1)
+        setUpDatabase() {
+            self.createDocument(fromJSONString: self.jsonString1)
+        }
     }
 
     func chainer(_ document: JSON?, next: (String) -> Void) {
@@ -135,7 +136,7 @@ class DocumentCrudTests: CouchDBTest {
     func readDocument() {
         database!.retrieve(documentId1, callback: { (document: JSON?, error: NSError?) in
             if error != nil {
-               XCTFail("Error in reading document \(error!.code) \(error!.domain) \(error!.userInfo)")
+                XCTFail("Error in reading document \(error!.code) \(error!.domain) \(error!.userInfo)")
             } else {
                 guard let document = document,
                     let id = document["_id"].string,
@@ -171,7 +172,7 @@ class DocumentCrudTests: CouchDBTest {
                 }
                 XCTAssertEqual(self.documentId1, id1, "Wrong documentId read from document")
                 XCTAssertEqual("value1", value1, "Wrong value read from document")
-
+                
                 let document2 = document["rows"][1]["doc"]
                 guard let id2 = document2["_id"].string,
                     let value2 = document2["value"].string else {
@@ -190,7 +191,7 @@ class DocumentCrudTests: CouchDBTest {
 
     //Create document closure
     func createDocument(fromJSONString jsonString: String) {
-       // Convert JSON string to NSData
+        // Convert JSON string to NSData
         let jsonData = jsonString.data(using: .utf8)
         // Convert NSData to JSON object
         jsonDocument = JSON(data: jsonData!)
@@ -209,5 +210,6 @@ class DocumentCrudTests: CouchDBTest {
             }
         })
     }
-
+    
 }
+

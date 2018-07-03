@@ -55,24 +55,34 @@ class CouchDBTest: XCTestCase {
     // MARK: - Initializers and test set-up and tear-down
 
     override func setUp() {
-        delay(dropDatabaseIfExists)
     }
     
     override func tearDown() {
-        delay(dropDatabaseIfExists)
     }
     
     /// Drop the test database, if it exists.
     ///
-    func dropDatabaseIfExists() {
-          // Check if DB exists
-          couchDBClient.dbExists(dbName) { exists, error in
-            if  error != nil {
-                XCTFail("Failed checking existence of database \(self.dbName). Error=\(error!.localizedDescription)")
-            } else {
-                if  exists {
-                    self.dropDatabase()
+    func dropDatabaseIfExistsWithDelay(completion: @escaping () -> Void) {
+        // Check if DB exists
+        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
+            self.couchDBClient.dbExists(self.dbName) { exists, error in
+                if  error != nil {
+                    XCTFail("Failed checking existence of database \(self.dbName). Error=\(error!.localizedDescription)")
+                } else {
+                    if  exists {
+                        self.dropDatabase()
+                        completion()
+                    }
                 }
+            }
+        }
+    }
+
+    // setting up  the database
+    func setUpDatabase(isSetUpCompleted: @escaping () -> Void) -> Void {
+        self.dropDatabaseIfExistsWithDelay() {
+            self.createDatabase() { _ in
+                isSetUpCompleted()
             }
         }
     }
@@ -80,7 +90,7 @@ class CouchDBTest: XCTestCase {
     /// Create the test database, failing the test if it already exists, or if there
     /// is a connectivity error.
     ///
-    func createDatabase() {
+    func createDatabase(_ handler: @escaping (Bool) -> Void) -> Void {
         delay(delayedCreateDatabase)
     }
 

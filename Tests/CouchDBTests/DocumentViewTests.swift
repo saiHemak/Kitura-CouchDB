@@ -17,9 +17,9 @@
 import XCTest
 
 #if os(Linux)
-    import Glibc
+import Glibc
 #else
-    import Darwin
+import Darwin
 #endif
 
 import Foundation
@@ -31,7 +31,7 @@ class DocumentViewTests: CouchDBTest {
 
     static var allTests: [(String, (DocumentViewTests) -> () throws -> Void)] {
         return [
-                   ("testViewTest", testViewTest)
+            ("testViewTest", testViewTest)
         ]
     }
 
@@ -39,8 +39,9 @@ class DocumentViewTests: CouchDBTest {
     var jsonDocument: JSON?
 
     func testViewTest() {
-        createDatabase()
-        createDocument()
+        setUpDatabase() {
+            self.createDocument()
+        }
     }
 
     func chainer(_ document: JSON?, next: (_ revisionNumber: String) -> Void) {
@@ -57,11 +58,11 @@ class DocumentViewTests: CouchDBTest {
 
     //Read document
     func readDocument() {
-#if os(Linux)
+        #if os(Linux)
         let key = "viewTest"
-#else
+        #else
         let key: NSString = "viewTest"
-#endif
+        #endif
         database!.queryByView("matching", ofDesign: "test", usingParameters: [.keys([key])]) { (document: JSON?, error: NSError?) in
             if let error = error {
                 XCTFail("Error in querying by view document \(error.code) \(error.domain) \(error.userInfo)")
@@ -73,7 +74,7 @@ class DocumentViewTests: CouchDBTest {
 
                 XCTAssertEqual(self.documentId, id, "Wrong documentId read from document")
                 XCTAssertEqual(key as String, value, "Wrong value read from document")
-
+                
                 print(">> Successfully read the following JSON document: ")
                 print(document!)
             }
@@ -110,23 +111,23 @@ class DocumentViewTests: CouchDBTest {
     func createDesign() {
         let name = "test"
         #if os(Linux)
-            let designDocument: [String:Any] =
-                ["_id" : "_design/\(name)",
-                 "views" : [
-                               "matching" : [
-                                                "map" : "function(doc) { emit(doc.value, doc); }"
+        let designDocument: [String:Any] =
+            ["_id" : "_design/\(name)",
+                "views" : [
+                    "matching" : [
+                        "map" : "function(doc) { emit(doc.value, doc); }"
                     ]
-                    ]
-            ]
+                ]
+        ]
         #else
-            let designDocument: [String:Any] =
-                ["_id" : "_design/\(name)" as NSString,
-                 "views" : [
-                               "matching" : [
-                                                "map" : "function(doc) { emit(doc.value, doc); }"
-                    ]
-                    ]
-            ]
+        let designDocument: [String:Any] =
+            ["_id" : "_design/\(name)" as NSString,
+             "views" : [
+                "matching" : [
+                    "map" : "function(doc) { emit(doc.value, doc); }"
+                ]
+                ]
+        ]
         #endif
         database!.createDesign(name, document: JSON(designDocument)) { (document: JSON?, error: NSError?) in
             if let error = error {
@@ -138,3 +139,4 @@ class DocumentViewTests: CouchDBTest {
         }
     }
 }
+
